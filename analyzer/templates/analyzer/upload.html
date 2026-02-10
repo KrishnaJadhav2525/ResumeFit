@@ -1,0 +1,201 @@
+{% extends "analyzer/base.html" %}
+
+{% block title %}Analyze Resume{% endblock %}
+{% block nav_upload_active %}active{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-badge">ML-Powered Analysis</div>
+        <h1 class="hero-title">
+            Match Your Resume<br>
+            <span class="gradient-text">To Any Job Description</span>
+        </h1>
+        <p class="hero-subtitle">
+            Upload your resume and paste a job description to get an honest, explainable
+            similarity score powered by TF-IDF vectorization and cosine similarity.
+        </p>
+    </section>
+
+    <!-- Upload Form -->
+    <section class="form-section">
+        <form method="post" enctype="multipart/form-data" class="analysis-form" id="analysis-form">
+            {% csrf_token %}
+
+            <div class="form-grid">
+                <!-- Resume Upload Card -->
+                <div class="form-card">
+                    <div class="form-card-header">
+                        <span class="form-card-icon">📄</span>
+                        <h2 class="form-card-title">Resume</h2>
+                    </div>
+
+                    <div class="upload-zone" id="upload-zone">
+                        <div class="upload-zone-content">
+                            <div class="upload-icon">⬆</div>
+                            <p class="upload-text">
+                                <strong>Click to upload</strong> or drag & drop
+                            </p>
+                            <p class="upload-hint">PDF only · Max 5 MB</p>
+                            <p class="upload-filename" id="filename-display"></p>
+                        </div>
+                        {{ form.resume_file }}
+                    </div>
+
+                    {% if form.resume_file.errors %}
+                    <div class="field-errors">
+                        {% for error in form.resume_file.errors %}
+                        <p class="field-error">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Job Description Card -->
+                <div class="form-card">
+                    <div class="form-card-header">
+                        <span class="form-card-icon">💼</span>
+                        <h2 class="form-card-title">Job Description</h2>
+                    </div>
+
+                    {{ form.job_description }}
+
+                    {% if form.job_description.errors %}
+                    <div class="field-errors">
+                        {% for error in form.job_description.errors %}
+                        <p class="field-error">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <div class="char-counter">
+                        <span id="char-count">0</span> / 50 min characters
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-lg" id="submit-btn">
+                    <span class="btn-icon">⚡</span>
+                    <span class="btn-text">Analyze Match</span>
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <!-- How It Works -->
+    <section class="how-it-works">
+        <h2 class="section-title">How It Works</h2>
+        <div class="steps-grid">
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <h3>Upload Resume</h3>
+                <p>Upload your PDF resume. We extract text using PyMuPDF.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <h3>Paste Job Description</h3>
+                <p>Paste the full job description for comparison.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <h3>TF-IDF Vectorization</h3>
+                <p>Both texts are converted to numerical vectors using TF-IDF.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">4</div>
+                <h3>Cosine Similarity</h3>
+                <p>The angle between vectors gives a similarity score (0–100%).</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Recent Analyses -->
+    {% if recent_analyses %}
+    <section class="recent-section">
+        <h2 class="section-title">Recent Analyses</h2>
+        <div class="recent-grid">
+            {% for item in recent_analyses %}
+            <a href="{% url 'analyzer:results' pk=item.pk %}" class="recent-card">
+                <div class="recent-score {{ item.score_color }}">
+                    {{ item.match_percentage }}%
+                </div>
+                <div class="recent-info">
+                    <span class="recent-label">{{ item.score_label }}</span>
+                    <span class="recent-date">{{ item.created_at|timesince }} ago</span>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // File upload interaction
+    const fileInput = document.getElementById('resume-file-input');
+    const uploadZone = document.getElementById('upload-zone');
+    const filenameDisplay = document.getElementById('filename-display');
+
+    if (uploadZone && fileInput) {
+        uploadZone.addEventListener('click', () => fileInput.click());
+
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('dragover');
+        });
+
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                updateFilename();
+            }
+        });
+
+        fileInput.addEventListener('change', updateFilename);
+
+        function updateFilename() {
+            if (fileInput.files.length) {
+                filenameDisplay.textContent = fileInput.files[0].name;
+                uploadZone.classList.add('has-file');
+            }
+        }
+    }
+
+    // Character counter
+    const textarea = document.getElementById('job-description-input');
+    const charCount = document.getElementById('char-count');
+
+    if (textarea && charCount) {
+        textarea.addEventListener('input', () => {
+            const count = textarea.value.trim().length;
+            charCount.textContent = count;
+            charCount.parentElement.classList.toggle('valid', count >= 50);
+        });
+        // Trigger on load
+        charCount.textContent = textarea.value.trim().length;
+    }
+
+    // Form submit loading state
+    const form = document.getElementById('analysis-form');
+    const submitBtn = document.getElementById('submit-btn');
+
+    if (form && submitBtn) {
+        form.addEventListener('submit', () => {
+            submitBtn.disabled = true;
+            submitBtn.querySelector('.btn-text').textContent = 'Analyzing...';
+            submitBtn.classList.add('loading');
+        });
+    }
+</script>
+{% endblock %}

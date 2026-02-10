@@ -1,0 +1,73 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ResumeFit{% endblock %} — Resume Analyzer</title>
+    <meta name="description" content="Analyze your resume against job descriptions using real machine learning. TF-IDF vectorization and cosine similarity for honest, explainable matching.">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="{% url 'analyzer:upload' %}" class="nav-brand">
+                <span class="brand-icon">◆</span>
+                <span class="brand-text">Resume<span class="brand-accent">Fit</span></span>
+            </a>
+            <div class="nav-links">
+                <a href="{% url 'analyzer:upload' %}" class="nav-link {% block nav_upload_active %}{% endblock %}">
+                    <span class="nav-icon">⬆</span> Analyze
+                </a>
+                <a href="{% url 'analyzer:history' %}" class="nav-link {% block nav_history_active %}{% endblock %}">
+                    <span class="nav-icon">◷</span> History
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}" role="alert">
+            <span class="alert-icon">
+                {% if message.tags == 'success' %}✓{% elif message.tags == 'error' %}✕{% else %}ℹ{% endif %}
+            </span>
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <p class="footer-text">
+                    <strong>ResumeFit</strong> — Built with Django, scikit-learn, and honest NLP.
+                </p>
+                <p class="footer-disclaimer">
+                    This tool uses TF-IDF vectorization and cosine similarity for matching.
+                    Results are statistical, not a substitute for human judgment.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

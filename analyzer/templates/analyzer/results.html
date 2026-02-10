@@ -1,0 +1,135 @@
+{% extends "analyzer/base.html" %}
+
+{% block title %}Results — {{ analysis.match_percentage }}% Match{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Score Hero -->
+    <section class="results-hero">
+        <div class="score-ring {{ analysis.score_color }}">
+            <div class="score-ring-inner">
+                <span class="score-value">{{ analysis.match_percentage }}%</span>
+                <span class="score-label-text">{{ analysis.score_label }}</span>
+            </div>
+            <svg class="score-svg" viewBox="0 0 120 120">
+                <circle class="score-track" cx="60" cy="60" r="54" />
+                <circle class="score-fill" cx="60" cy="60" r="54"
+                    style="stroke-dasharray: {{ analysis.match_percentage|floatformat:0 }}% 100%;"
+                    stroke-dashoffset="0" />
+            </svg>
+        </div>
+        <div class="results-hero-text">
+            <h1>Match Analysis Complete</h1>
+            <p class="results-meta">
+                Analyzed on {{ analysis.created_at|date:"F j, Y \a\t g:i A" }}
+            </p>
+            <p class="results-method">
+                Method: TF-IDF Vectorization + Cosine Similarity (scikit-learn)
+            </p>
+        </div>
+    </section>
+
+    <!-- Skills Overview Cards -->
+    <section class="skills-overview">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">{{ analysis.resume_skills|length }}</div>
+                <div class="stat-label">Resume Skills</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ analysis.job_skills|length }}</div>
+                <div class="stat-label">Required Skills</div>
+            </div>
+            <div class="stat-card stat-highlight">
+                <div class="stat-value">{{ common_skills|length }}</div>
+                <div class="stat-label">Matching Skills</div>
+            </div>
+            <div class="stat-card stat-warning">
+                <div class="stat-value">{{ analysis.missing_skills|length }}</div>
+                <div class="stat-label">Missing Skills</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Skill Details -->
+    <section class="skills-detail">
+        <div class="skills-grid">
+            <!-- Matching Skills -->
+            <div class="skill-card skill-card-match">
+                <h2 class="skill-card-title">
+                    <span class="skill-icon">✓</span> Matching Skills
+                </h2>
+                <p class="skill-card-desc">Skills found in both your resume and the job description.</p>
+                <div class="skill-tags">
+                    {% for skill in common_skills %}
+                    <span class="skill-tag tag-match">{{ skill }}</span>
+                    {% empty %}
+                    <p class="no-skills">No overlapping skills found.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Missing Skills -->
+            <div class="skill-card skill-card-missing">
+                <h2 class="skill-card-title">
+                    <span class="skill-icon">✕</span> Missing Skills
+                </h2>
+                <p class="skill-card-desc">Skills required by the job that were not found in your resume.</p>
+                <div class="skill-tags">
+                    {% for skill in analysis.missing_skills %}
+                    <span class="skill-tag tag-missing">{{ skill }}</span>
+                    {% empty %}
+                    <p class="no-skills">No missing skills — great coverage!</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Extra Resume Skills -->
+            <div class="skill-card skill-card-extra">
+                <h2 class="skill-card-title">
+                    <span class="skill-icon">+</span> Additional Resume Skills
+                </h2>
+                <p class="skill-card-desc">Skills found in your resume but not specifically listed in the job
+                    description.</p>
+                <div class="skill-tags">
+                    {% for skill in extra_skills %}
+                    <span class="skill-tag tag-extra">{{ skill }}</span>
+                    {% empty %}
+                    <p class="no-skills">No additional skills detected.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Transparency Note -->
+    <section class="transparency-note">
+        <div class="note-card">
+            <h3>📊 How This Score Was Computed</h3>
+            <p>
+                Your resume and the job description were each converted into
+                <strong>TF-IDF vectors</strong> (Term Frequency–Inverse Document Frequency),
+                which represent the importance of words relative to both documents.
+                The <strong>cosine similarity</strong> between these vectors produces
+                the match percentage — a value between 0% (no overlap) and 100% (identical content).
+            </p>
+            <p>
+                Skills were extracted using <strong>keyword matching</strong> against a
+                predefined vocabulary of {{ analysis.resume_skills|length|add:analysis.missing_skills|length }}+
+                technical and soft skills.
+                This is honest NLP — no black-box AI, no hallucinated results.
+            </p>
+        </div>
+    </section>
+
+    <!-- Actions -->
+    <div class="results-actions">
+        <a href="{% url 'analyzer:upload' %}" class="btn btn-primary">
+            <span class="btn-icon">⬆</span> New Analysis
+        </a>
+        <a href="{% url 'analyzer:history' %}" class="btn btn-secondary">
+            <span class="btn-icon">◷</span> View History
+        </a>
+    </div>
+</div>
+{% endblock %}
