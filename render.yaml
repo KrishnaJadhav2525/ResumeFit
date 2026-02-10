@@ -1,0 +1,22 @@
+databases:
+  - name: resumefit-db
+    databaseName: resumefit
+    user: resumefit
+
+services:
+  - type: web
+    name: resumefit
+    env: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn resumefit.wsgi --log-file -"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: resumefit-db
+          property: connectionString
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: WEB_CONCURRENCY
+        value: "4"
