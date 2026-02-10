@@ -51,7 +51,7 @@
         </div>
     </section>
 
-    <!-- Skill Details -->
+    <!-- Skill Details with Progress Bars -->
     <section class="skills-detail">
         <div class="skills-grid">
             <!-- Matching Skills -->
@@ -59,7 +59,13 @@
                 <h2 class="skill-card-title">
                     <span class="skill-icon">✓</span> Matching Skills
                 </h2>
-                <p class="skill-card-desc">Skills found in both your resume and the job description.</p>
+                <div class="skill-progress-container">
+                    <div class="skill-progress-bar match-bar"
+                        style="width: {% widthratio common_skills|length analysis.job_skills|length 100 %}%;"></div>
+                </div>
+                <p class="skill-card-desc">Found {{ common_skills|length }} of {{ analysis.job_skills|length }} required
+                    skills.</p>
+
                 <div class="skill-tags">
                     {% for skill in common_skills %}
                     <span class="skill-tag tag-match">{{ skill }}</span>
@@ -74,7 +80,14 @@
                 <h2 class="skill-card-title">
                     <span class="skill-icon">✕</span> Missing Skills
                 </h2>
-                <p class="skill-card-desc">Skills required by the job that were not found in your resume.</p>
+                <div class="skill-progress-container">
+                    <div class="skill-progress-bar missing-bar"
+                        style="width: {% widthratio analysis.missing_skills|length analysis.job_skills|length 100 %}%;">
+                    </div>
+                </div>
+                <p class="skill-card-desc">Missing {{ analysis.missing_skills|length }} of {{ analysis.job_skills|length
+                    }} required skills.</p>
+
                 <div class="skill-tags">
                     {% for skill in analysis.missing_skills %}
                     <span class="skill-tag tag-missing">{{ skill }}</span>

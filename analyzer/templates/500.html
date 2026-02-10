@@ -1,0 +1,16 @@
+{% extends "analyzer/base.html" %}
+
+{% block title %}Server Error (500){% endblock %}
+
+{% block content %}
+<div class="container" style="text-align: center; padding: 4rem 0;">
+    <div style="font-size: 4rem; margin-bottom: 1rem;">😵</div>
+    <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">Server Error</h1>
+    <p style="color: var(--text-secondary); margin-bottom: 2rem; font-size: 1.1rem;">
+        Something went wrong on our end. We've been notified and are looking into it.
+    </p>
+    <a href="{% url 'analyzer:upload' %}" class="btn btn-primary btn-lg">
+        Back to Home
+    </a>
+</div>
+{% endblock %}

@@ -33,16 +33,48 @@ A production-ready Django application that analyzes resume relevance using **TF-
 
 ---
 
-## 🧠 How It Works
+## 🏗 Architecture
 
-1.  **Preprocessing**: Text is extracted from the uploaded PDF and the job description. It is cleaned (lowercased, normalized) to remove noise.
-2.  **Vectorization**: Both texts are converted into numerical vectors using **TF-IDF** (Term Frequency-Inverse Document Frequency). This downweights common words (like "the", "and") and highlights unique, meaningful terms.
-3.  **Similarity**: A **Cosine Similarity** score is calculated between the two vectors, measuring the angle between them. A higher score means the resume's content is statistically closer to the job description.
-4.  **Keyword Matching**: The text is scanned against a predefined vocabulary (`skills.py`) to extract specific technical skills for the "Missing Skills" report.
+```mermaid
+graph TD
+    User[User] -->|Upload PDF| Form[Django Form]
+    Form -->|Validate| Clean[Text Cleaning]
+    Clean -->|Raw Text| Singleton[ResumeMatcher (Singleton)]
+    
+    subgraph "ML Pipeline (scikit-learn)"
+        Singleton -->|Fit/Transform| TFIDF[TF-IDF Vectorizer]
+        TFIDF -->|Vectors| Cosine[Cosine Similarity]
+        Cosine -->|Score 0-1.0| Result
+    end
+    
+    subgraph "Skill Extraction"
+        Clean -->|Regex| Extractor[Skill Extractor]
+        Extractor -->|Match Vocabulary| Skills[Identified Skills]
+    end
+    
+    Result --> DB[(PostgreSQL/SQLite)]
+    Skills --> DB
+    DB --> View[Results View]
+```
+
+## 🧠 Deep Dive: Why TF-IDF?
+
+We chose **TF-IDF (Term Frequency-Inverse Document Frequency)** over complex LLM embeddings for three reasons:
+
+1.  **Explainability**: We can tell you exactly *which* words contributed to the match. Embeddings are black boxes.
+2.  **Speed**: It runs in milliseconds on a single CPU core. No GPU required.
+3.  **Deterministic**: The same resume + job description always yields the same score.
+
+**The Math:**
+-   **TF**: How often a word appears in the resume.
+-   **IDF**: How rare the word is across the "corpus" (here, the two documents).
+-   **Cosine Similarity**: Measures the angle between the two text vectors. 
+    -   Angle = 0° (Match) → Cosine = 1.0
+    -   Angle = 90° (No overlap) → Cosine = 0.0
 
 ---
 
-## 📐 Design Decisions
+## 🛠 Tech Stack
 
 | Decision | Rationale |
 | :--- | :--- |

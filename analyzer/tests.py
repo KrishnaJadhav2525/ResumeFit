@@ -177,6 +177,7 @@ class ViewTests(TestCase):
     def test_results_page_404_for_missing(self):
         response = self.client.get('/results/9999/')
         self.assertEqual(response.status_code, 404)
+        self.assertTemplateUsed(response, '404.html')
 
     def test_results_page_with_data(self):
         analysis = AnalysisResult.objects.create(

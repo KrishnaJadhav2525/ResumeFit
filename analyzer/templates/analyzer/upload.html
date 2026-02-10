@@ -84,6 +84,13 @@
         </form>
     </section>
 
+    <!-- Loading Overlay (Hidden by default) -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="spinner"></div>
+        <div class="loading-text">Analyzing Resume...</div>
+        <p class="loading-subtext">Calculating TF-IDF vectors & cosine similarity</p>
+    </div>
+
     <!-- How It Works -->
     <section class="how-it-works">
         <h2 class="section-title">How It Works</h2>
@@ -136,11 +143,17 @@
 
 {% block extra_js %}
 <script>
-    // File upload interaction
+    // Elements
     const fileInput = document.getElementById('resume-file-input');
     const uploadZone = document.getElementById('upload-zone');
     const filenameDisplay = document.getElementById('filename-display');
+    const textarea = document.getElementById('job-description-input');
+    const charCount = document.getElementById('char-count');
+    const form = document.getElementById('analysis-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const loadingOverlay = document.getElementById('loading-overlay');
 
+    // File Upload Interaction
     if (uploadZone && fileInput) {
         uploadZone.addEventListener('click', () => fileInput.click());
 
@@ -172,29 +185,36 @@
         }
     }
 
-    // Character counter
-    const textarea = document.getElementById('job-description-input');
-    const charCount = document.getElementById('char-count');
-
+    // Character Counter
     if (textarea && charCount) {
-        textarea.addEventListener('input', () => {
+        const updateCount = () => {
             const count = textarea.value.trim().length;
             charCount.textContent = count;
             charCount.parentElement.classList.toggle('valid', count >= 50);
-        });
-        // Trigger on load
-        charCount.textContent = textarea.value.trim().length;
+        };
+        textarea.addEventListener('input', updateCount);
+        updateCount(); // Init on load
     }
 
-    // Form submit loading state
-    const form = document.getElementById('analysis-form');
-    const submitBtn = document.getElementById('submit-btn');
+    // Loading State
+    if (form && loadingOverlay) {
+        form.addEventListener('submit', function (e) {
+            // Basic client-side check before showing spinner
+            if (fileInput.files.length === 0 && !document.querySelector('.has-file')) {
+                // Allow Django to handle error, but don't show spinner if obviously empty
+                // actually, let's just let it submit, Django will reload with errors
+                // We only show spinner if we think it's valid?
+                // No, show spinner anyway, it's safer. If Django returns 200 with errors, page reloads.
+            }
 
-    if (form && submitBtn) {
-        form.addEventListener('submit', () => {
-            submitBtn.disabled = true;
-            submitBtn.querySelector('.btn-text').textContent = 'Analyzing...';
-            submitBtn.classList.add('loading');
+            // Show overlay
+            loadingOverlay.classList.add('active');
+
+            // Disable button
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.querySelector('.btn-text').textContent = 'Analyzing...';
+            }
         });
     }
 </script>
