@@ -1,13 +1,15 @@
 databases:
   - name: resumefit-db
+    plan: free
     databaseName: resumefit
     user: resumefit
 
 services:
   - type: web
     name: resumefit
+    plan: free
     env: python
-    buildCommand: "./build.sh"
+    buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate"
     startCommand: "gunicorn resumefit.wsgi --log-file -"
     envVars:
       - key: DATABASE_URL
