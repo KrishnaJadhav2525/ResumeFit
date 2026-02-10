@@ -10,4 +10,5 @@ urlpatterns = [
     path('', views.upload_resume, name='upload'),
     path('results/<int:pk>/', views.view_results, name='results'),
     path('history/', views.analysis_history, name='history'),
+    path('health/', views.health_check, name='health_check'),
 ]

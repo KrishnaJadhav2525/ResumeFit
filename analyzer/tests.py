@@ -192,6 +192,12 @@ class ViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'analyzer/results.html')
 
+    def test_health_check(self):
+        """Test the health check endpoint returns 200 OK."""
+        response = self.client.get('/health/')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {'status': 'ok'})
+
 
 class AnalysisResultModelTest(TestCase):
     """Tests for the AnalysisResult model."""

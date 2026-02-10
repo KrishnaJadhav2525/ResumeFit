@@ -103,3 +103,12 @@ def analysis_history(request):
     return render(request, 'analyzer/history.html', {
         'analyses': analyses,
     })
+
+
+def health_check(request):
+    """
+    Simple health check endpoint returning 200 OK.
+    Used by hosting platforms to verify the app is up.
+    """
+    from django.http import JsonResponse
+    return JsonResponse({'status': 'ok'}, status=200)
